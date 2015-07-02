@@ -1,0 +1,63 @@
+---
+- name: install aufs kernel module
+  apt: 
+    name: linux-image-extra-{{ ansible_kernel }} 
+    state: present
+    update_cache: yes
+    cache_valid_time: 3600
+  tags:
+    - docker
+    - aufs
+
+- name: add docker repository gpg key
+  apt_key:
+    id: "{{ apt_key_sig }}"
+    url: "{{ apt_key_url }}"
+    state: present
+  tags:
+    - docker
+
+- name: add docker repository
+  apt_repository:
+    repo: "{{ apt_repository }}"
+    update_cache: yes
+    state: present
+  tags:
+    - docker
+
+- name: install latest docker package
+  apt:
+    name: "lxc-docker"
+    state: latest
+    update_cache: yes
+    cache_valid_time: 3600
+  tags:
+    - docker
+
+- name: install python-pip
+  apt:
+    name: "python-pip"
+    state: latest
+    update_cache: yes
+    cache_valid_time: 3600
+  tags:
+    - docker
+    - docker-py
+
+- name: update to latest python-pip
+  pip:
+    name: pip
+    version: 7.0.3
+    extra_args: '--upgrade'
+  tags:
+    - docker
+    - docker-py
+
+- name: install docker-py
+  pip:
+    name: docker-py
+    # https://github.com/ansible/ansible-modules-core/issues/1227
+    version: 1.1.0
+  tags:
+    - docker
+    - docker-py

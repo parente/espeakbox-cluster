@@ -1,0 +1,63 @@
+---
+- name: configure hosts
+  hosts: all
+  roles:
+    - ssh_key_only
+    - docker
+  tags:
+    - setup
+
+- name: deploy text-to-speech engines
+  hosts: worker
+  roles:
+    - espeakbox
+  tags:
+    - espeakbox
+    - worker
+
+# needed so that the proxy play has information about the worker hosts
+# even if we're not touching the workers
+- name: collect worker facts
+  hosts: worker
+  tasks:
+    - debug: msg="no-op"
+  tags:
+    - debug
+    - nginx
+    - proxy
+
+- name: deploy proxy
+  hosts: proxy
+  roles:
+    - role: jdauphant.nginx
+      nginx_http_params:
+        - sendfile on
+    # TODO: need to roll our own because we can't iterate over all the workers
+    # and ports below
+    - role: nginx_upstream      
+      # nginx_sites:
+      #   worker:
+      #     - listen 80
+      #     - location / { proxy_pass http://worker; }
+      # nginx_confs:
+      #   - upstream worker {
+      #       server 127.0.0.1
+      #     }
+  tasks:
+    # TODO: move this into the nginx_upstream role
+    # overrite upstream.conf with multiple hosts using a more complex template 
+    # than the role provides
+    - template: src=/templates/upstream.conf.j2 dest=/etc/nginx/conf.d/upstream.conf
+      notify:
+        - reload nginx
+  tags:
+    - nginx
+    - proxy
+
+# - name: dumper
+#   hosts: worker
+#   tasks:
+#     - debug: msg="{{ hostvars[item].ansible_eth0.ipv4.address }}"
+#       with_items: groups['worker']
+#   tags:
+#     - debug

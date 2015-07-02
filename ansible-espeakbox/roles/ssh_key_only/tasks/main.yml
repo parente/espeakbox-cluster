@@ -1,0 +1,25 @@
+---
+- name: disable ChallengeResponseAuthentication
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    insertafter: EOF 
+    regexp: '^[^#]*ChallengeResponseAuthentication'
+    line: 'ChallengeResponseAuthentication no' 
+    state: present
+  tags:
+    - sshd
+  notify:
+    - restart sshd
+
+- name: disable PasswordAuthentication
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    insertafter: EOF
+    regexp: '^[^#]*PasswordAuthentication'
+    line: 'PasswordAuthentication no' 
+    state: present
+  tags:
+    - sshd
+  notify:
+    - restart sshd
+

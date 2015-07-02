@@ -1,0 +1,14 @@
+---
+- name: run espeakbox
+  docker:
+    image: parente/espeakbox
+    state: reloaded
+    ports:
+      - "{{ item }}:8080"
+    restart_policy: 'on-failure'
+    restart_policy_retry: 5
+    name: espeakbox_{{ item }}
+  # https://github.com/ansible/ansible-modules-core/issues/989
+  with_sequence: start='{{ espeakbox_port_start }}' count='{{ espeakbox_container_count }}'
+  tags:
+    - espeakbox
